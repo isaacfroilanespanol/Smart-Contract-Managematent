@@ -1,0 +1,49 @@
+ // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract SimpleToken {
+    // Mapping from address to balance
+    mapping(address => uint256) private balances;
+    
+    // Address of the contract owner
+    address public owner;
+    
+    // Event to log the minting of new tokens
+    event Mint(address indexed to, uint256 amount);
+    
+    // Event to log the transfer of tokens
+    event Transfer(address indexed from, address indexed to, uint256 amount);
+    
+    // Modifier to restrict certain functions to the owner
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not the contract owner");
+        _;
+    }
+    
+    // Constructor to set the contract owner
+    constructor() {
+        owner = msg.sender;
+    }
+    
+    // Function to mint new tokens
+    function mint(address to, uint256 amount) public onlyOwner {
+        require(to != address(0), "Cannot mint to zero address");
+        balances[to] += amount;
+        emit Mint(to, amount);
+    }
+    
+    // Function to transfer tokens
+    function transfer(address to, uint256 amount) public {
+        require(to != address(0), "Cannot transfer to zero address");
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        
+        balances[msg.sender] -= amount;
+        balances[to] += amount;
+        emit Transfer(msg.sender, to, amount);
+    }
+    
+    // Function to check the balance of an address
+    function balanceOf(address account) public view returns (uint256) {
+        return balances[account];
+    }
+}
