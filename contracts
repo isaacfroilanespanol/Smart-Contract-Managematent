@@ -1,0 +1,58 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Assessment {
+    address public owner;
+    mapping(address => uint256) public balances;
+
+    event Deposited(address indexed account, uint256 amount);
+    event Withdrawn(address indexed account, uint256 amount);
+    event CarBought(address indexed account, uint256 carId, string carName, uint256 carPrice);
+
+    struct Car {
+        uint256 id;
+        string name;
+        uint256 price;
+    }
+
+    Car[] public cars;
+
+    constructor() {
+        owner = msg.sender;
+
+        // Add some sample cars
+        cars.push(Car(1, "Toyota Camry", 5000));
+        cars.push(Car(2, "Honda Civic", 4000));
+        cars.push(Car(3, "Ford Mustang", 10000));
+    }
+
+    function deposit(uint256 amount) external payable {
+        require(msg.value == amount, "Amount doesn't match value sent");
+        balances[msg.sender] += amount;
+        emit Deposited(msg.sender, amount);
+    }
+
+    function withdraw(uint256 amount) external {
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        balances[msg.sender] -= amount;
+        payable(msg.sender).transfer(amount);
+        emit Withdrawn(msg.sender, amount);
+    }
+
+    function buyCar(uint256 carId) external {
+        require(carId > 0 && carId <= cars.length, "Invalid car ID");
+        Car memory car = cars[carId - 1]; // Car ID is 1-indexed
+        require(balances[msg.sender] >= car.price, "Insufficient balance to buy this car");
+        
+        balances[msg.sender] -= car.price;
+        emit CarBought(msg.sender, car.id, car.name, car.price);
+    }
+
+    function getBalance() external view returns (uint256) {
+        return balances[msg.sender];
+    }
+
+    function getCarsCount() external view returns (uint256) {
+        return cars.length;
+    }
+}
